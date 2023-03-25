@@ -20,9 +20,6 @@ public class DownloadHandler implements Handler {
             byteBuffer.clear();
 
             if (file.exists()) {
-
-                System.out.println(file.length());
-
                 byteBuffer.putLong(file.length());
                 byteBuffer.flip();
                 clientChannel.write(byteBuffer);

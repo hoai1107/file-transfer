@@ -1,5 +1,7 @@
 package org.example.server;
 
+import picocli.CommandLine;
+
 import javax.swing.plaf.synth.SynthTextAreaUI;
 import java.io.File;
 import java.io.IOException;
@@ -13,21 +15,24 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 
-public class FileTransferServer {
+@CommandLine.Command(
+        name = "server",
+        description = "Create server for file transfer application"
+)
+public class FileTransferServer implements Runnable {
 
-    private static final int DOWNLOAD_PORT = 8001;
-    private static final int UPLOAD_PORT = 8002;
-    private static final int LIST_PORT = 8003;
+    @CommandLine.Option(
+            names = {"--directory"},
+            description = "Set root directory for file transfer server"
+    )
+    private String rootDirectory;
 
-    public static void main(String[] args) {
+    private final int DOWNLOAD_PORT = 8001;
+    private final int UPLOAD_PORT = 8002;
+    private final int LIST_PORT = 8003;
 
-        if (args.length == 0) {
-            System.err.println("Usage: java FileServer <path/to/root/directory>");
-            return;
-        }
-
-        ServerVariable.setRootDirectory(args[0]);
-
+    public void run() {
+        ServerVariable.setRootDirectory(rootDirectory);
         if (!Files.exists(Path.of(ServerVariable.getRootDirectory()))) {
             System.err.printf("Directory %s not exist.", ServerVariable.getRootDirectory());
             return;

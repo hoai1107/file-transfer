@@ -1,39 +1,42 @@
 package org.example.client;
 
-import java.io.File;
-import java.io.FileOutputStream;
+import picocli.CommandLine;
+
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Scanner;
 
-public class FileTransferClient {
 
-    private static final String SERVER_HOST = "localhost";
-    private static final int DOWNLOAD_PORT = 8001;
-    private static final int UPLOAD_PORT = 8002;
-    private static final int LIST_PORT = 8003;
+@CommandLine.Command(
+        name = "client",
+        description = "Create client to interact with server"
+)
+public class FileTransferClient implements Runnable {
 
-    public static void main(String[] args) {
+    @CommandLine.Option(names = {"--server-address"}, defaultValue = "localhost", description = "The address of server")
+    private String serverAddress;
+
+    @CommandLine.Option(names = {"--action"}, description = "Available action: download/upload/list")
+    private String action;
+
+    private final int DOWNLOAD_PORT = 8001;
+    private final int UPLOAD_PORT = 8002;
+    private final int LIST_PORT = 8003;
+
+    public void run() {
         try {
-            String choice;
-            int port = 8080;
+            int serverPort = 8000;
 
-            System.out.println("-------------------------------------------");
-            choice = FileTransferClientCommand.inputChoice();
-
-            switch (choice) {
-                case "list" -> port = LIST_PORT;
-                case "download" -> port = DOWNLOAD_PORT;
-                case "upload" -> port = UPLOAD_PORT;
+            switch (action) {
+                case "list" -> serverPort = LIST_PORT;
+                case "download" -> serverPort = DOWNLOAD_PORT;
+                case "upload" -> serverPort = UPLOAD_PORT;
             }
 
             SocketChannel clientChannel = SocketChannel.open();
-            clientChannel.connect(new InetSocketAddress(SERVER_HOST, port));
+            clientChannel.connect(new InetSocketAddress(serverAddress, serverPort));
 
-            switch (choice) {
+            switch (action) {
                 case "list" -> FileTransferClientCommand.getAllFilesName(clientChannel);
                 case "download" -> FileTransferClientCommand.getFileFromServer(clientChannel);
                 case "upload" -> FileTransferClientCommand.uploadFileToServer(clientChannel);

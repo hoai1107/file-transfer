@@ -1,7 +1,6 @@
 package org.example.server;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.InputStreamReader;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
@@ -23,9 +22,7 @@ public class ListHandler implements Handler {
                 clientChannel.write(buffer);
             }
 
-            int exitCode = p.waitFor();
-            // Print the exit code
-            System.out.println("Process exited with code " + exitCode);
+            p.waitFor();
         } catch (Exception ex) {
             ex.printStackTrace();
         }
