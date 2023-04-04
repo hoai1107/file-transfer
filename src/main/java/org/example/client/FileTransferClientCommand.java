@@ -105,6 +105,7 @@ public class FileTransferClientCommand {
     }
 
     public static void uploadFileToServer(SocketChannel clientSocket) throws IOException {
+
         ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
 
         System.out.print("Enter filename to upload: ");
@@ -132,16 +133,19 @@ public class FileTransferClientCommand {
         buffer.clear();
 
         // Send file content
+        int bytesRead;
         try (FileChannel fileChannel = FileChannel.open(path)) {
-            while (fileChannel.read(buffer) > 0) {
+            while ((bytesRead = fileChannel.read(buffer))> 0) {
+                System.out.println(bytesRead);
                 buffer.flip();
                 clientSocket.write(buffer);
-                buffer.clear();
+                buffer.compact();
             }
-
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
+
     }
 }
 

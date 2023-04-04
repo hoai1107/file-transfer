@@ -31,6 +31,8 @@ public class FileTransferServer implements Runnable {
     private final int UPLOAD_PORT = 8002;
     private final int LIST_PORT = 8003;
 
+    private final int BUFFER_SIZE = 1024 * 1024 * 2;
+
     public void run() {
         ServerVariable.setRootDirectory(rootDirectory);
         if (!Files.exists(Path.of(ServerVariable.getRootDirectory()))) {
@@ -83,7 +85,9 @@ public class FileTransferServer implements Runnable {
                         SocketChannel clientChannel = channel.accept();
                         Socket socket = clientChannel.socket();
                         clientChannel.configureBlocking(false);
-                        socket.setKeepAlive(false);
+                        socket.setReceiveBufferSize(BUFFER_SIZE);
+                        socket.setSendBufferSize(BUFFER_SIZE);
+//                        socket.setKeepAlive(false);
 
                         if (channel == downloadChannel) {
                             opKey = SelectionKey.OP_READ;

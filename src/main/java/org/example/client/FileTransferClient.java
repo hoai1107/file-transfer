@@ -4,6 +4,7 @@ import picocli.CommandLine;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.nio.channels.SocketChannel;
 
 
@@ -23,6 +24,8 @@ public class FileTransferClient implements Runnable {
     private final int UPLOAD_PORT = 8002;
     private final int LIST_PORT = 8003;
 
+    private final int BUFFER_SIZE = 1024 * 1024 * 2;
+
     public void run() {
         try {
             int serverPort = 8000;
@@ -35,6 +38,10 @@ public class FileTransferClient implements Runnable {
 
             SocketChannel clientChannel = SocketChannel.open();
             clientChannel.connect(new InetSocketAddress(serverAddress, serverPort));
+
+//            Socket socket = clientChannel.socket();
+//            socket.setSendBufferSize(BUFFER_SIZE);
+//            socket.setReceiveBufferSize(BUFFER_SIZE);
 
             switch (action) {
                 case "list" -> FileTransferClientCommand.getAllFilesName(clientChannel);

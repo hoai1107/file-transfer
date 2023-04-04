@@ -5,6 +5,7 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
 public class UploadHandler implements Handler {
     @Override
@@ -19,32 +20,35 @@ public class UploadHandler implements Handler {
             filenameLen = intBuffer.getInt();
             intBuffer.clear();
 
-            System.out.println(filenameLen);
-
             ByteBuffer nameBuffer = ByteBuffer.allocate(filenameLen);
             clientChannel.read(nameBuffer);
             nameBuffer.flip();
             filename = new String(nameBuffer.array());
             nameBuffer.clear();
 
-            System.out.println(filename);
-
             Path path = Path.of(ServerVariable.getRootDirectory(), filename);
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-            }
 
-            System.out.println(path.toAbsolutePath());
+//            System.out.println(path.getFileName());
 
             int bytesRead;
             ByteBuffer byteBuffer = ByteBuffer.allocate(BUFFER_SIZE);
-            while ((bytesRead = clientChannel.read((byteBuffer))) > 0) {
-                byte[] chunk = new byte[bytesRead];
+
+            while (true) {
+                bytesRead = clientChannel.read(byteBuffer);
+                System.out.println(bytesRead);
+
+                if (bytesRead == -1) {
+                    break;
+                }
+
                 byteBuffer.flip();
+                byte[] chunk = new byte[bytesRead];
                 byteBuffer.get(chunk);
-                Files.write(path, chunk);
-                byteBuffer.clear();
+                Files.write(path, chunk, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                byteBuffer.compact();
             }
+
+            System.out.println("Finish uploading file " + filename);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
