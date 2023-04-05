@@ -38,10 +38,8 @@ public class FileTransferClient implements Runnable {
 
             SocketChannel clientChannel = SocketChannel.open();
             clientChannel.connect(new InetSocketAddress(serverAddress, serverPort));
-
-//            Socket socket = clientChannel.socket();
-//            socket.setSendBufferSize(BUFFER_SIZE);
-//            socket.setReceiveBufferSize(BUFFER_SIZE);
+            Socket socket = clientChannel.socket();
+            socket.setReceiveBufferSize(BUFFER_SIZE);
 
             switch (action) {
                 case "list" -> FileTransferClientCommand.getAllFilesName(clientChannel);

@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class DownloadHandler implements Handler {
     @Override
@@ -15,22 +17,27 @@ public class DownloadHandler implements Handler {
             clientChannel.read(byteBuffer);
 
             String filename = new String(byteBuffer.array()).trim();
-            File file = new File(ServerVariable.getRootDirectory() + File.separator + filename);
+            Path file = Path.of(ServerVariable.getRootDirectory(), filename);
+//            File file = new File(ServerVariable.getRootDirectory() + File.separator + filename);
 
             byteBuffer.clear();
 
-            if (file.exists()) {
-                byteBuffer.putLong(file.length());
+            if (Files.exists(file)) {
+                byteBuffer.putLong(Files.size(file));
                 byteBuffer.flip();
                 clientChannel.write(byteBuffer);
                 byteBuffer.clear();
 
-                try (FileInputStream fis = new FileInputStream(file); FileChannel fileChannel = fis.getChannel()) {
+                try (FileChannel fileChannel = FileChannel.open(file)) {
                     while (fileChannel.read(byteBuffer) > 0) {
                         byteBuffer.flip();
                         clientChannel.write(byteBuffer);
-                        byteBuffer.clear();
+                        byteBuffer.compact();
+
+                        Thread.sleep(500);
                     }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
                 }
             } else {
                 byteBuffer.put("File not found on channel.".getBytes());

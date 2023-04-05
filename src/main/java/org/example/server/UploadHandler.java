@@ -35,7 +35,7 @@ public class UploadHandler implements Handler {
 
             while (true) {
                 bytesRead = clientChannel.read(byteBuffer);
-                System.out.println(bytesRead);
+//                System.out.println(bytesRead);
 
                 if (bytesRead == -1) {
                     break;

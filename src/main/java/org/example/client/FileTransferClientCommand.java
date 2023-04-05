@@ -10,6 +10,7 @@ import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.Scanner;
 
 public class FileTransferClientCommand {
@@ -63,28 +64,31 @@ public class FileTransferClientCommand {
             lenBuffer.clear();
 
             Path path = Path.of(filename);
-            if (!Files.exists(path)) {
-                Files.createFile(path);
-            }
 
-            int bytesRead;
-            long total = 0;
-            while ((bytesRead = clientChannel.read(buffer)) > 0) {
-                total += bytesRead;
+            // Get data from channel and create file
+            int bytesRead, bytesReceived = 0;
+
+
+            while (true) {
+                bytesRead = clientChannel.read(buffer);
+                if (bytesRead == -1) {
+                    break;
+                }
+
+                bytesReceived += bytesRead;
+
+                System.out.printf("\r%.2fMB / %.2fMB", (bytesReceived * 1.0) / 1048576, (fileLength * 1.0) / 1048576);
 
                 buffer.flip();
                 byte[] chunk = new byte[bytesRead];
                 buffer.get(chunk);
-                Files.write(path, chunk);
-                buffer.clear();
-
-                if (total == fileLength) {
-                    break;
-                }
+                Files.write(path, chunk, StandardOpenOption.CREATE, StandardOpenOption.APPEND);
+                buffer.compact();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
+
     }
 
     public static void getAllFilesName(SocketChannel clientSocket) {
@@ -133,10 +137,23 @@ public class FileTransferClientCommand {
         buffer.clear();
 
         // Send file content
-        int bytesRead;
+        int progressBarWidth = 40;
+        int bytesRead, bytesWritten = 0;
+        long totalBytes = Files.size(path);
+
         try (FileChannel fileChannel = FileChannel.open(path)) {
-            while ((bytesRead = fileChannel.read(buffer))> 0) {
-                System.out.println(bytesRead);
+            while ((bytesRead = fileChannel.read(buffer)) > 0) {
+                bytesWritten += bytesRead;
+
+                // Calculate the progress percentage and update the progress bar
+                int progress = (int) (bytesWritten * 100 / totalBytes);
+                int progressBarLength = (int) (progressBarWidth * progress / 100);
+                String progressBar = "[" + "=".repeat(progressBarLength) + " ".repeat(progressBarWidth - progressBarLength) + "]";
+
+                // Print the progress bar to the console
+                System.out.print("\r" + progressBar + " " + progress + "%");
+                System.out.flush();
+
                 buffer.flip();
                 clientSocket.write(buffer);
                 buffer.compact();
@@ -144,8 +161,6 @@ public class FileTransferClientCommand {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
-
     }
 }
 
