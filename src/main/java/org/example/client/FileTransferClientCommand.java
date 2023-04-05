@@ -14,31 +14,6 @@ public class FileTransferClientCommand {
 
     private static final int BUFFER_SIZE = 1024 * 1024;
 
-    public static String inputChoice() {
-        String choice;
-
-        String menu = """
-                list: Get list of available files in server
-                download <filename>: Download file from server
-                upload <path/to/file>: Upload file to server
-                """;
-
-        System.out.print(menu);
-        System.out.print("Enter your choice: ");
-        choice = scanner.nextLine();
-        return choice;
-    }
-
-    public static void printHelp() {
-        String menu = """
-                list: Get list of available files in server
-                download: Download file from server
-                upload: Upload file to server
-                """;
-
-        System.out.print(menu);
-    }
-
     public static void getFileFromServer(SocketChannel clientChannel) {
         try {
             ByteBuffer buffer = ByteBuffer.allocate(BUFFER_SIZE);
