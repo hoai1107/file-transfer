@@ -1,13 +1,9 @@
 package org.example.client;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.channels.SocketChannel;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
@@ -88,7 +84,6 @@ public class FileTransferClientCommand {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-
     }
 
     public static void getAllFilesName(SocketChannel clientSocket) {
@@ -137,7 +132,6 @@ public class FileTransferClientCommand {
         buffer.clear();
 
         // Send file content
-        int progressBarWidth = 40;
         int bytesRead, bytesWritten = 0;
         long totalBytes = Files.size(path);
 
@@ -145,14 +139,7 @@ public class FileTransferClientCommand {
             while ((bytesRead = fileChannel.read(buffer)) > 0) {
                 bytesWritten += bytesRead;
 
-                // Calculate the progress percentage and update the progress bar
-                int progress = (int) (bytesWritten * 100 / totalBytes);
-                int progressBarLength = (int) (progressBarWidth * progress / 100);
-                String progressBar = "[" + "=".repeat(progressBarLength) + " ".repeat(progressBarWidth - progressBarLength) + "]";
-
-                // Print the progress bar to the console
-                System.out.print("\r" + progressBar + " " + progress + "%");
-                System.out.flush();
+                System.out.printf("\r%.2fMB / %.2fMB", (bytesWritten * 1.0) / 1048576, (totalBytes * 1.0) / 1048576);
 
                 buffer.flip();
                 clientSocket.write(buffer);
